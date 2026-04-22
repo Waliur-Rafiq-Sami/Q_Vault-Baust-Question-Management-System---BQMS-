@@ -1,7 +1,7 @@
 import React from "react";
 
 const page = () => {
-  return <div className="border border-blue-200">sami</div>;
+  return <div>id page</div>;
 };
 
 export default page;
