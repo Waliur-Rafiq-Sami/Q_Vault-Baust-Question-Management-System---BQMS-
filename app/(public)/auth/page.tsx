@@ -20,6 +20,7 @@ export default function AuthPage() {
   const { login, signup } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState("user");
+  const [loginMode, setLoginMode] = useState<"login" | "forgot">("login");
   const router = useRouter();
 
   const SUPER_ADMINS = [
@@ -80,6 +81,75 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+    setLoading(true);
+    const form = e.currentTarget;
+
+    const formData = new FormData(form);
+    const email = String(formData.get("email") || "");
+    const birthdate = String(formData.get("birthdate") || "");
+    const phone = String(formData.get("phone") || "");
+    const newPassword = String(formData.get("newPassword") || "");
+    const confirmPassword = String(formData.get("confirmPassword") || "");
+
+    if (newPassword !== confirmPassword) {
+      await Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "New password and confirm password must match.",
+        confirmButtonColor: "#ef4444",
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          birthdate,
+          phone,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Password reset failed");
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: "Password Updated",
+        text: "You can now log in with your new password.",
+        timer: 1600,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      });
+
+      form.reset();
+      setLoginMode("login");
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Reset Failed",
+        text: error.message || "Something went wrong!",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="flex items-center justify-center min-h-[80vh] p-4">
       <Tabs defaultValue="login" className="w-full max-w-[400px]">
@@ -98,27 +168,82 @@ export default function AuthPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form
-                onSubmit={(e) => handleSubmit(e, "login")}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Password</Label>
-                  <Input name="password" type="password" required />
-                </div>
-                <Button className="w-full" type="submit" disabled={loading}>
-                  {loading ? "Logging in..." : "Login"}
-                </Button>
-              </form>
+              {loginMode === "login" ? (
+                <form
+                  onSubmit={(e) => handleSubmit(e, "login")}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      name="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Password</Label>
+                    <Input name="password" type="password" required />
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-right text-rose-600 hover:text-rose-700 transition-colors"
+                    onClick={() => setLoginMode("forgot")}
+                  >
+                    Forgot password?
+                  </button>
+                  <Button className="w-full" type="submit" disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      name="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Birthdate</Label>
+                      <Input name="birthdate" type="date" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone Number</Label>
+                      <Input name="phone" type="tel" placeholder="017..." required />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>New Password</Label>
+                    <Input name="newPassword" type="password" required />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Confirm New Password</Label>
+                    <Input name="confirmPassword" type="password" required />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                      onClick={() => setLoginMode("login")}
+                    >
+                      Back to login
+                    </button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Resetting..." : "Reset Password"}
+                    </Button>
+                  </div>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
