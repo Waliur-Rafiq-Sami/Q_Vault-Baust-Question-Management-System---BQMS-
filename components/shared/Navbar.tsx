@@ -38,7 +38,6 @@ export default function Navbar() {
     router.push("/auth");
   };
 
-  // Get initials from username for avatar
   const getInitials = (name: string) => {
     return name
       .split(" ")
