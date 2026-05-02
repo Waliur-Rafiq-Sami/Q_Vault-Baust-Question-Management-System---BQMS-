@@ -4,6 +4,7 @@ import { Question } from "@/models/Question";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, ImageIcon } from "lucide-react";
+import BookmarkButton from "@/components/bookmark/BookmarkButton";
 
 // This makes the page fetch fresh data on every request
 export const revalidate = 0;
@@ -46,7 +47,7 @@ export default async function QuestionGallery() {
         {data.map((q: any) => (
           <Card
             key={q._id}
-            className="group border-2 border-slate-100 hover:border-emerald-500 transition-all rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl bg-white"
+            className="group relative overflow-hidden border-2 border-slate-100 hover:border-emerald-500 transition-all rounded-[2rem] shadow-sm hover:shadow-xl bg-white"
           >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start mb-2">
@@ -68,7 +69,7 @@ export default async function QuestionGallery() {
               </p>
             </CardHeader>
 
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-5 pb-14">
               <div className="flex gap-2 text-[10px] font-black uppercase text-slate-400 tracking-tighter">
                 <span className="px-2 py-1 bg-slate-50 rounded-md">
                   Level {q.level}
@@ -106,6 +107,11 @@ export default async function QuestionGallery() {
                 ))}
               </div>
             </CardContent>
+
+            <BookmarkButton
+              question={q}
+              className="absolute bottom-3 right-3"
+            />
           </Card>
         ))}
       </div>
