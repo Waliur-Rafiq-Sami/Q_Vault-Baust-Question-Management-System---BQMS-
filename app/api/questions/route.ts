@@ -54,3 +54,19 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    await connectDB();
+
+    // Fetch questions sorted by newest first
+    const questions = await Question.find({}).sort({ createdAt: -1 });
+
+    return NextResponse.json(questions, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: "Failed to fetch questions", details: error.message },
+      { status: 500 },
+    );
+  }
+}

@@ -25,6 +25,7 @@ export default function Navbar() {
     { label: "Notes", href: "/notes" },
     { label: "Bookmark", href: "/bookmark" },
     { label: "upload", href: "/questions/upload" },
+    { label: "ALL Q", href: "/all-questions" },
   ];
 
   const handleLogout = () => {
