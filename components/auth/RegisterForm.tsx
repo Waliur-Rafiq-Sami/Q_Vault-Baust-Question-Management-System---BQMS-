@@ -13,21 +13,12 @@ export default function RegisterForm() {
   });
 
   const handleSubmit = async () => {
-    const res = await fetch("/api/auth/register", {
+    await fetch("/api/auth/register", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(form),
     });
 
-    const data = await res.json();
-
-    if (data.error) {
-      alert(data.error);
-    } else {
-      alert("Registered successfully!");
-    }
+    alert("Registered!");
   };
 
   return (
