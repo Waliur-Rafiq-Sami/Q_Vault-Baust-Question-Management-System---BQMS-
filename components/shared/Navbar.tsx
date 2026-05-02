@@ -24,8 +24,8 @@ export default function Navbar() {
     { label: "Vault", href: "/vault" },
     { label: "Notes", href: "/notes" },
     { label: "Bookmark", href: "/bookmark" },
-    { label: "upload", href: "/questions/upload" },
-    { label: "ALL Q", href: "/all-questions" },
+    { label: "upload", href: "/question/upload" },
+    { label: "ALL Q", href: "/questions" },
   ];
 
   const handleLogout = () => {
