@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/shared/Navbar";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,11 +30,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="h-full">
+      <body className="h-full" suppressHydrationWarning>
         <AuthProvider>
           <Navbar></Navbar>
           {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

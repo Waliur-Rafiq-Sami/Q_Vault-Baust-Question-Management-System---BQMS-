@@ -82,9 +82,7 @@ export default function AuthPage() {
     }
   };
 
-  const handleForgotPassword = async (
-    e: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     const form = e.currentTarget;
@@ -186,13 +184,15 @@ export default function AuthPage() {
                     <Label>Password</Label>
                     <Input name="password" type="password" required />
                   </div>
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-right text-rose-600 hover:text-rose-700 transition-colors"
-                    onClick={() => setLoginMode("forgot")}
-                  >
-                    Forgot password?
-                  </button>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-right  text-blue-600 hover:text-blue-700 transition-colors"
+                      onClick={() => setLoginMode("forgot")}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <Button className="w-full" type="submit" disabled={loading}>
                     {loading ? "Logging in..." : "Login"}
                   </Button>
@@ -216,7 +216,12 @@ export default function AuthPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Phone Number</Label>
-                      <Input name="phone" type="tel" placeholder="017..." required />
+                      <Input
+                        name="phone"
+                        type="tel"
+                        placeholder="017..."
+                        required
+                      />
                     </div>
                   </div>
 
@@ -264,16 +269,26 @@ export default function AuthPage() {
               >
                 <div className="space-y-2">
                   <Label>Full Name</Label>
-                  <Input name="name" placeholder="Waliur Rafiq" required />
+                  <Input name="name" placeholder="user name ..." required />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input name="email" type="email" required />
+                    <Input
+                      placeholder="user@gmail.com"
+                      name="email"
+                      type="email"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Password</Label>
-                    <Input name="password" type="password" required />
+                    <Input
+                      placeholder="**********"
+                      name="password"
+                      type="password"
+                      required
+                    />
                   </div>
                 </div>
 

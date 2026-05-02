@@ -24,6 +24,7 @@ export default function Navbar() {
     { label: "Vault", href: "/vault" },
     { label: "Notes", href: "/notes" },
     { label: "Bookmark", href: "/bookmark" },
+    { label: "upload", href: "/questions/upload" },
   ];
 
   const handleLogout = () => {
@@ -50,7 +51,10 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 lg:px-8">
         {/* LEFT SECTION - Logo and Name */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg group">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-bold text-lg group"
+        >
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 text-white transition-transform group-hover:scale-110">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +126,7 @@ export default function Navbar() {
             </DropdownMenu>
           </div>
         ) : (
-          <button 
+          <button
             onClick={handleLogin}
             className="relative px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-green-400/50 hover:scale-105 before:absolute before:inset-0 before:rounded-full before:border-2 before:border-green-400 before:scale-0 before:transition-transform before:duration-300 hover:before:scale-100"
           >
