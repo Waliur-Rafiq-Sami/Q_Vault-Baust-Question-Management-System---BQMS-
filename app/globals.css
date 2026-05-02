@@ -128,3 +128,29 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .row-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #84a1c4 #e5f0d8;
+  }
+
+  .row-scrollbar::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .row-scrollbar::-webkit-scrollbar-track {
+    background: #e5f0d8;
+    border-radius: 9999px;
+  }
+
+  .row-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #84a1c4, #a7c1e1, #84a1c4);
+    border-radius: 9999px;
+    border: 2px solid #e5f0d8;
+  }
+
+  .row-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #84a1c4;
+  }
+}
