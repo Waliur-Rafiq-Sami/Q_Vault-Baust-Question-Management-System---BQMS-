@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FileDropzone } from "../upload/file-dropzone";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function FinalAssetsStep({
   questionImages,
@@ -95,12 +96,19 @@ export function FinalAssetsStep({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 ml-1">
+        <label className="text-[13px] pb-2 font-black uppercase tracking-widest text-emerald-600 ml-1">
           Additional Remarks
         </label>
         <Textarea
           placeholder="e.g. 'Page 3 is slightly blurry but readable'..."
-          className="min-h-[100px] rounded-2xl border-2 p-4 focus:border-emerald-500 focus:ring-0 transition-all bg-white"
+          className={cn(
+            "w-full min-h-[120px] p-4 bg-white",
+            "rounded-2xl border-2 border-slate-100",
+            "transition-all duration-200",
+            "focus:border-emerald-500 focus:ring-0 focus:bg-slate-50/30",
+            "placeholder:text-slate-400",
+            "text-lg font-medium text-slate-700",
+          )}
           onChange={(e) => updateForm("questionText", e.target.value)}
         />
       </div>

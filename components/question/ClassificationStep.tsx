@@ -84,6 +84,11 @@ export function ClassificationStep({
           options={[
             { label: "CSE", value: "CSE" },
             { label: "EEE", value: "EEE" },
+            { label: "ME", value: "ME" },
+            { label: "CE", value: "CE" },
+            { label: "IPE", value: "IPE" },
+            { label: "BBA", value: "BBA" },
+            { label: "English", value: "ENGLISH" },
           ]}
           onValueChange={(v: string) => updateForm("department", v)}
           value={form.department}

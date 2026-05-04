@@ -93,27 +93,27 @@ export function CourseIntelStep({
             Course Identity{" "}
             {showErrors && <span className="text-rose-500">*</span>}
           </label>
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 pt-2 text-lg">
             <input
               value={form.courseCode}
               className={cn(
-                "flex h-14 w-full md:w-[140px] rounded-2xl border-2 px-5 font-bold transition-all focus:outline-none",
+                "flex h-14 w-full md:w-[160px] rounded-2xl border-2 px-3 font-bold transition-all focus:outline-none",
                 showErrors && !form.courseCode
                   ? "border-rose-400 bg-rose-50/30 ring-4 ring-rose-50 animate-shake"
                   : "border-slate-100 focus:border-emerald-500",
               )}
-              placeholder="CSE-3101"
+              placeholder="Code: CSE-3101"
               onChange={(e) => updateForm("courseCode", e.target.value)}
             />
             <input
               value={form.courseTitle}
               className={cn(
-                "flex h-14 flex-1 rounded-2xl border-2 px-5 font-bold transition-all focus:outline-none",
+                "flex h-14 flex-1 rounded-2xl border-2 px-3 font-bold transition-all focus:outline-none",
                 showErrors && !form.courseTitle
                   ? "border-rose-400 bg-rose-50/30 ring-4 ring-rose-50 animate-shake"
                   : "border-slate-100 focus:border-emerald-500",
               )}
-              placeholder="Database Management Systems"
+              placeholder="Title: Database Management....."
               onChange={(e) => updateForm("courseTitle", e.target.value)}
             />
           </div>
