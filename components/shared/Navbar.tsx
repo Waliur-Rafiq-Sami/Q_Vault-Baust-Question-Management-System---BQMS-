@@ -20,7 +20,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navLinks = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard", href: "/" },
     { label: "Vault", href: "/vault" },
     { label: "Notes", href: "/notes" },
     { label: "Bookmark", href: "/bookmark" },

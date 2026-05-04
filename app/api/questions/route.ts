@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     const solutionUrls = await Promise.all(
       solutionFiles.map((file) => uploadToCloudinary(file, "solutions")),
     );
+    yn;
+    console.log(questionUrls);
+    console.log(solutionUrls);
 
     // 3. Prepare MongoDB Data
     const questionData = {
