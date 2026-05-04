@@ -84,7 +84,10 @@ export default function QuestionUploadForm() {
         );
       }
     } catch (error) {
-      console.error("Server Error:", errorData.error || "Something went wrong");
+      console.error(
+        "Server Error:",
+        error instanceof Error ? error.message : "Something went wrong",
+      );
     } finally {
       setLoading(false);
     }
