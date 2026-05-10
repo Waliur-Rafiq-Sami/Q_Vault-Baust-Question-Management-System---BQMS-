@@ -118,3 +118,5 @@ export function removeNote(ownerKey: string | null, noteId: string) {
 
   saveNotes(ownerKey, getNotes(ownerKey).filter((item) => item.id !== noteId));
 }
+
+// Listen for storage changes to sync notes across tabs 
