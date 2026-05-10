@@ -130,7 +130,7 @@ export default function BookmarkPage() {
             <button
               type="button"
               onClick={() => setClearDialogOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700"
+              className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:border-red-300 hover:text-red-800"
             >
               <Trash2 className="h-4 w-4" /> Clear all
             </button>
