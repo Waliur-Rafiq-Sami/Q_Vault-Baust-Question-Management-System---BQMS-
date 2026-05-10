@@ -64,6 +64,58 @@ export default function NotesPage() {
       });
     }
     setPendingNoteId(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const openDataUrl = (dataUrl: string) => {
+    try {
+      if (dataUrl.startsWith("data:")) {
+        const [meta, b64] = dataUrl.split(',');
+        const mime = meta.split(':')[1].split(';')[0] || 'application/octet-stream';
+        const binary = atob(b64);
+        const len = binary.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+        const blob = new Blob([u8], { type: mime });
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        return;
+      }
+      window.open(dataUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to open file", err);
+      toast.error("Unable to open file");
+    }
+  };
+
+  const downloadDataUrl = (dataUrl: string, filename?: string) => {
+    try {
+      if (dataUrl.startsWith("data:")) {
+        const [meta, b64] = dataUrl.split(',');
+        const mime = meta.split(':')[1].split(';')[0] || 'application/octet-stream';
+        const binary = atob(b64);
+        const len = binary.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+        const blob = new Blob([u8], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || 'download';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        return;
+      }
+      downloadFile(dataUrl, filename || "download");
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Download failed", err);
+      toast.error("Unable to download file");
+    }
   };
 
   if (!loading && !user) {
@@ -181,10 +233,10 @@ export default function NotesPage() {
                                     </div>
                                   )}
                                   <div className="absolute inset-0 flex items-end gap-2 bg-black/40 p-3 opacity-0 transition-opacity group-hover:opacity-100">
-                                    <Button type="button" variant="secondary" className="h-8 flex-1 rounded-lg text-xs" onClick={() => window.open(file.dataUrl, "_blank", "noreferrer")}>
+                                    <Button type="button" variant="secondary" className="h-8 flex-1 rounded-lg text-xs" onClick={() => openDataUrl(file.dataUrl)}>
                                       <Maximize2 className="h-3.5 w-3.5" /> View Full
                                     </Button>
-                                    <Button type="button" variant="outline" className="h-8 flex-1 rounded-lg border-emerald-200 bg-white text-xs text-emerald-700 hover:border-emerald-300 hover:text-emerald-800" onClick={() => downloadFile(file.dataUrl, file.name)}>
+                                    <Button type="button" variant="outline" className="h-8 flex-1 rounded-lg border-emerald-200 bg-white text-xs text-emerald-700 hover:border-emerald-300 hover:text-emerald-800" onClick={() => downloadDataUrl(file.dataUrl, file.name)}>
                                       <Download className="h-3.5 w-3.5" /> Download
                                     </Button>
                                   </div>
