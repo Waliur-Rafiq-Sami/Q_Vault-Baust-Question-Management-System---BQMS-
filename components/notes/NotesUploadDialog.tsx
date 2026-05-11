@@ -23,11 +23,13 @@ export function NotesUploadDialog({ open, onOpenChange }: NotesUploadDialogProps
   const [showErrors, setShowErrors] = useState(false);
   const [courseCode, setCourseCode] = useState("");
   const [topic, setTopic] = useState("");
+  const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
   const resetForm = () => {
     setCourseCode("");
     setTopic("");
+    setDescription("");
     setFiles([]);
     setShowErrors(false);
   };
@@ -76,6 +78,7 @@ export function NotesUploadDialog({ open, onOpenChange }: NotesUploadDialogProps
       const note = await createNote(ownerKey, {
         courseCode,
         topic,
+        description,
         files,
       });
 
@@ -162,6 +165,19 @@ export function NotesUploadDialog({ open, onOpenChange }: NotesUploadDialogProps
                     ? "border-rose-400 bg-rose-50/30 ring-4 ring-rose-50"
                     : "border-slate-100 focus:border-emerald-500",
                 )}
+              />
+            </div>
+
+            <div className="space-y-2.5 md:col-span-2">
+              <label className="ml-1 text-[11px] font-black uppercase tracking-[0.15em] text-emerald-600">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Add a short description for these notes"
+                rows={4}
+                className="min-h-28 w-full rounded-2xl border-2 border-slate-100 px-4 py-3 text-base font-medium outline-none transition-all focus:border-emerald-500"
               />
             </div>
           </div>

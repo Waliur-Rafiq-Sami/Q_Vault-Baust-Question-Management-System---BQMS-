@@ -24,18 +24,8 @@ export type BookmarkGroup = {
   updatedAt: string;
 };
 
-const STORAGE_PREFIX = "qvault-bookmarks";
-
-function canUseStorage() {
-  return typeof window !== "undefined";
-}
-
 export function getBookmarkOwnerKey(user: { _id?: string; id?: string; email?: string } | null | undefined) {
   return user?._id || user?.id || user?.email || null;
-}
-
-function getStorageKey(ownerKey: string) {
-  return `${STORAGE_PREFIX}:${ownerKey}`;
 }
 
 function normalizeQuestion(question: BookmarkQuestion): BookmarkQuestion {
@@ -50,97 +40,94 @@ function normalizeSolve(url: string, label: string): BookmarkSolve {
   return { url, label };
 }
 
-function uniqueSolves(solves: BookmarkSolve[]) {
-  return solves.filter(
-    (solve, index, list) => list.findIndex((item) => item.url === solve.url) === index,
-  );
+function dispatchBookmarksUpdated() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("qvault-bookmarks-updated"));
+  }
 }
 
-export function getBookmarks(ownerKey: string | null): BookmarkGroup[] {
-  if (!canUseStorage()) {
-    return [];
-  }
-
+export async function getBookmarks(ownerKey: string | null): Promise<BookmarkGroup[]> {
   if (!ownerKey) {
     return [];
   }
 
   try {
-    const raw = window.localStorage.getItem(getStorageKey(ownerKey));
-    return raw ? (JSON.parse(raw) as BookmarkGroup[]) : [];
+    const response = await fetch(`/api/bookmarks?ownerKey=${encodeURIComponent(ownerKey)}`);
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = (await response.json()) as { bookmarks?: BookmarkGroup[] };
+    return data.bookmarks ?? [];
   } catch {
     return [];
   }
 }
 
-function saveBookmarks(ownerKey: string, bookmarks: BookmarkGroup[]) {
-  if (!canUseStorage()) {
-    return;
-  }
-
-  window.localStorage.setItem(getStorageKey(ownerKey), JSON.stringify(bookmarks));
-  window.dispatchEvent(new Event("qvault-bookmarks-updated"));
-}
-
-export function upsertBookmark(ownerKey: string | null, question: BookmarkQuestion, solve?: BookmarkSolve) {
+export async function upsertBookmark(ownerKey: string | null, question: BookmarkQuestion, solve?: BookmarkSolve) {
   if (!ownerKey) {
     return null;
   }
 
   const normalizedQuestion = normalizeQuestion(question);
-  const bookmarks = getBookmarks(ownerKey);
-  const questionId = normalizedQuestion._id;
-  const existingIndex = bookmarks.findIndex((item) => item.questionId === questionId);
-
-  const fallbackSolves =
-    normalizedQuestion.solutions?.map((url, index) => normalizeSolve(url, `Sol-${index + 1}`)) ?? [];
-  const incomingSolves = solve ? [solve] : fallbackSolves;
-
-  if (existingIndex === -1) {
-    const nextGroup: BookmarkGroup = {
-      questionId,
+  const response = await fetch("/api/bookmarks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ownerKey,
       question: normalizedQuestion,
-      solves: uniqueSolves(incomingSolves),
-      updatedAt: new Date().toISOString(),
-    };
+      solve: solve ?? undefined,
+    }),
+  });
 
-    saveBookmarks(ownerKey, [nextGroup, ...bookmarks]);
-    return nextGroup;
+  if (!response.ok) {
+    throw new Error("Unable to save bookmark");
   }
 
-  const existingGroup = bookmarks[existingIndex];
-  const mergedGroup: BookmarkGroup = {
-    ...existingGroup,
-    question: normalizedQuestion,
-    solves: uniqueSolves([...existingGroup.solves, ...incomingSolves]),
-    updatedAt: new Date().toISOString(),
-  };
+  dispatchBookmarksUpdated();
 
-  const nextBookmarks = [...bookmarks];
-  nextBookmarks[existingIndex] = mergedGroup;
-  saveBookmarks(ownerKey, nextBookmarks);
-  return mergedGroup;
+  const data = (await response.json()) as { bookmark?: BookmarkGroup };
+  return data.bookmark ?? null;
 }
 
-export function removeBookmark(ownerKey: string | null, questionId: string) {
+export async function removeBookmark(ownerKey: string | null, questionId: string) {
   if (!ownerKey) {
     return;
   }
 
-  const nextBookmarks = getBookmarks(ownerKey).filter((item) => item.questionId !== questionId);
-  saveBookmarks(ownerKey, nextBookmarks);
+  const response = await fetch("/api/bookmarks", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerKey, questionId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to remove bookmark");
+  }
+
+  dispatchBookmarksUpdated();
 }
 
-export function clearBookmarks(ownerKey: string | null) {
+export async function clearBookmarks(ownerKey: string | null) {
   if (!ownerKey) {
     return;
   }
 
-  saveBookmarks(ownerKey, []);
+  const response = await fetch("/api/bookmarks", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerKey, clearAll: true }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to clear bookmarks");
+  }
+
+  dispatchBookmarksUpdated();
 }
 
-export function hasBookmark(ownerKey: string | null, questionId: string, solveUrl?: string) {
-  const group = getBookmarks(ownerKey).find((item) => item.questionId === questionId);
+export async function hasBookmark(ownerKey: string | null, questionId: string, solveUrl?: string) {
+  const group = (await getBookmarks(ownerKey)).find((item) => item.questionId === questionId);
 
   if (!group) {
     return false;
