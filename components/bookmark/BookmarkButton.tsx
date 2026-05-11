@@ -27,17 +27,30 @@ export default function BookmarkButton({ question, solve, className }: BookmarkB
   const ownerKey = getBookmarkOwnerKey(user);
 
   useEffect(() => {
-    setBookmarked(hasBookmark(ownerKey, question._id, solve?.url));
+    let cancelled = false;
+
+    const syncBookmarkState = async () => {
+      const nextBookmarked = await hasBookmark(ownerKey, question._id, solve?.url);
+      if (!cancelled) {
+        setBookmarked(nextBookmarked);
+      }
+    };
+
+    void syncBookmarkState();
+
+    return () => {
+      cancelled = true;
+    };
   }, [ownerKey, question._id, solve?.url]);
 
-  const handleBookmark = () => {
+  const handleBookmark = async () => {
     if (!ownerKey) {
       toast.error("Please log in to save bookmarks");
       router.push("/auth");
       return;
     }
 
-    upsertBookmark(ownerKey, question, solve);
+    await upsertBookmark(ownerKey, question, solve);
     setBookmarked(true);
     toast.success("Added to bookmarks");
   };

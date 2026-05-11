@@ -27,32 +27,38 @@ export default function BookmarkPage() {
   const ownerKey = getBookmarkOwnerKey(user);
 
   useEffect(() => {
-    const syncBookmarks = () => setBookmarks(getBookmarks(ownerKey));
+    let cancelled = false;
 
-    setBookmarks(getBookmarks(ownerKey));
+    const syncBookmarks = async () => {
+      const nextBookmarks = await getBookmarks(ownerKey);
+      if (!cancelled) {
+        setBookmarks(nextBookmarks);
+      }
+    };
+
+    void syncBookmarks();
     window.addEventListener("qvault-bookmarks-updated", syncBookmarks);
-    window.addEventListener("storage", syncBookmarks);
 
     return () => {
+      cancelled = true;
       window.removeEventListener("qvault-bookmarks-updated", syncBookmarks);
-      window.removeEventListener("storage", syncBookmarks);
     };
   }, [ownerKey]);
 
-  const refreshBookmarks = () => setBookmarks(getBookmarks(ownerKey));
+  const refreshBookmarks = async () => setBookmarks(await getBookmarks(ownerKey));
 
-  const handleClearAll = () => {
-    clearBookmarks(ownerKey);
-    refreshBookmarks();
+  const handleClearAll = async () => {
+    await clearBookmarks(ownerKey);
+    await refreshBookmarks();
     toast.success("Bookmarks cleared", {
       position: "top-center",
       className: "bg-red-50 border-2 border-red-200 text-red-900 font-bold text-lg px-5 py-4 shadow-lg shadow-red-100",
     });
   };
 
-  const handleRemove = (questionId: string) => {
-    removeBookmark(ownerKey, questionId);
-    refreshBookmarks();
+  const handleRemove = async (questionId: string) => {
+    await removeBookmark(ownerKey, questionId);
+    await refreshBookmarks();
     toast.success("Removed bookmark", {
       position: "top-center",
       className: "bg-red-50 border-2 border-red-200 text-red-900 font-bold text-lg px-5 py-4 shadow-lg shadow-red-100",
@@ -110,7 +116,7 @@ export default function BookmarkPage() {
         confirmLabel="Remove"
         onConfirm={() => {
           if (pendingQuestionId) {
-            handleRemove(pendingQuestionId);
+            void handleRemove(pendingQuestionId);
           }
           setPendingQuestionId(null);
         }}
