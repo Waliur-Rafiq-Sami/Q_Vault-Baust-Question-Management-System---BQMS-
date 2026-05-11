@@ -23,23 +23,29 @@ export default function NotesPage() {
   const [pendingNoteId, setPendingNoteId] = useState<string | null>(null);
 
   useEffect(() => {
-    const syncNotes = () => setNotes(getNotes(ownerKey));
+    let cancelled = false;
 
-    syncNotes();
+    const syncNotes = async () => {
+      const nextNotes = await getNotes(ownerKey);
+      if (!cancelled) {
+        setNotes(nextNotes);
+      }
+    };
+
+    void syncNotes();
     window.addEventListener("qvault-notes-updated", syncNotes);
-    window.addEventListener("storage", syncNotes);
 
     return () => {
+      cancelled = true;
       window.removeEventListener("qvault-notes-updated", syncNotes);
-      window.removeEventListener("storage", syncNotes);
     };
   }, [ownerKey]);
 
-  const refreshNotes = () => setNotes(getNotes(ownerKey));
+  const refreshNotes = async () => setNotes(await getNotes(ownerKey));
 
-  const handleClearAll = () => {
-    clearNotes(ownerKey);
-    refreshNotes();
+  const handleClearAll = async () => {
+    await clearNotes(ownerKey);
+    await refreshNotes();
     toast.success("Notes cleared", {
       position: "top-center",
       className: "bg-red-50 border-2 border-red-200 text-red-900 font-bold text-lg px-5 py-4 shadow-lg shadow-red-100",
@@ -51,13 +57,13 @@ export default function NotesPage() {
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (pendingNoteId) {
-      const note = notes.find(n => n.id === pendingNoteId);
+      const note = notes.find((n) => n.id === pendingNoteId);
       const noteLabel = note ? `${note.courseCode} - ${note.topic}` : "note";
       
-      removeNote(ownerKey, pendingNoteId);
-      refreshNotes();
+      await removeNote(ownerKey, pendingNoteId);
+      await refreshNotes();
       toast.success(`Removed ${noteLabel}`, {
         position: "top-center",
         className: "bg-red-50 border-2 border-red-200 text-red-900 font-bold text-lg px-5 py-4 shadow-lg shadow-red-100",
@@ -150,7 +156,9 @@ export default function NotesPage() {
         title="Clear all notes?"
         description="This will remove every note saved in this account."
         confirmLabel="Clear all"
-        onConfirm={handleClearAll}
+        onConfirm={() => {
+          void handleClearAll();
+        }}
       />
 
       <ConfirmationDialog
@@ -159,7 +167,9 @@ export default function NotesPage() {
         title="Remove this note?"
         description="This note will be removed from your saved list."
         confirmLabel="Remove"
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => {
+          void handleConfirmDelete();
+        }}
       />
 
       <NotesUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} />
@@ -284,6 +294,12 @@ export default function NotesPage() {
                         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
                           <span className="font-semibold text-slate-500">Topic</span>
                           <span className="text-right font-bold text-slate-900">{note.topic}</span>
+                        </div>
+                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
+                          <span className="font-semibold text-slate-500">Description</span>
+                          <span className="max-w-[16rem] text-right font-medium text-slate-800">
+                            {note.description?.trim() ? note.description : "No description provided"}
+                          </span>
                         </div>
                         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
                           <span className="font-semibold text-slate-500">Files</span>

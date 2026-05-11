@@ -9,6 +9,7 @@ export type UserNote = {
   id: string;
   courseCode: string;
   topic: string;
+  description?: string;
   files: NoteFile[];
   createdAt: string;
   updatedAt: string;
@@ -17,61 +18,53 @@ export type UserNote = {
 export type NoteUploadInput = {
   courseCode: string;
   topic: string;
+  description?: string;
   files: File[];
 };
 
-const STORAGE_PREFIX = "qvault-notes";
-const STORAGE_EVENT = "qvault-notes-updated";
+type ApiNote = Omit<UserNote, "id"> & {
+  _id?: string;
+  id?: string;
+};
 
-function canUseStorage() {
-  return typeof window !== "undefined";
+function normalizeNote(note: ApiNote): UserNote {
+  return {
+    id: note.id || note._id || "",
+    courseCode: note.courseCode,
+    topic: note.topic,
+    description: note.description,
+    files: note.files,
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
+  };
 }
 
 export function getNotesOwnerKey(user: { _id?: string; id?: string; email?: string } | null | undefined) {
   return user?._id || user?.id || user?.email || null;
 }
 
-function getStorageKey(ownerKey: string) {
-  return `${STORAGE_PREFIX}:${ownerKey}`;
-}
-
-function createId() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
+function dispatchNotesUpdated() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("qvault-notes-updated"));
   }
-
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
-export function getNotes(ownerKey: string | null): UserNote[] {
-  if (!canUseStorage() || !ownerKey) {
+export async function getNotes(ownerKey: string | null): Promise<UserNote[]> {
+  if (!ownerKey) {
     return [];
   }
 
   try {
-    const raw = window.localStorage.getItem(getStorageKey(ownerKey));
-    return raw ? (JSON.parse(raw) as UserNote[]) : [];
+    const response = await fetch(`/api/notes?ownerKey=${encodeURIComponent(ownerKey)}`);
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = (await response.json()) as { notes?: ApiNote[] };
+    return (data.notes ?? []).map(normalizeNote);
   } catch {
     return [];
   }
-}
-
-function saveNotes(ownerKey: string, notes: UserNote[]) {
-  if (!canUseStorage()) {
-    return;
-  }
-
-  window.localStorage.setItem(getStorageKey(ownerKey), JSON.stringify(notes));
-  window.dispatchEvent(new Event(STORAGE_EVENT));
 }
 
 export async function createNote(ownerKey: string | null, input: NoteUploadInput) {
@@ -79,44 +72,65 @@ export async function createNote(ownerKey: string | null, input: NoteUploadInput
     return null;
   }
 
-  const uploadedAt = new Date().toISOString();
-  const files = await Promise.all(
-    input.files.map(async (file) => ({
-      name: file.name,
-      type: file.type || "application/octet-stream",
-      size: file.size,
-      dataUrl: await readFileAsDataUrl(file),
-    })),
-  );
+  const formData = new FormData();
+  formData.append("ownerKey", ownerKey);
+  formData.append("courseCode", input.courseCode.trim());
+  formData.append("topic", input.topic.trim());
+  formData.append("description", input.description?.trim() || "");
 
-  const nextNote: UserNote = {
-    id: createId(),
-    courseCode: input.courseCode.trim(),
-    topic: input.topic.trim(),
-    files,
-    createdAt: uploadedAt,
-    updatedAt: uploadedAt,
-  };
+  for (const file of input.files) {
+    formData.append("files", file);
+  }
 
-  const nextNotes = [nextNote, ...getNotes(ownerKey)];
-  saveNotes(ownerKey, nextNotes);
-  return nextNote;
+  const response = await fetch("/api/notes", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to save note");
+  }
+
+  dispatchNotesUpdated();
+
+  const data = (await response.json()) as { note?: ApiNote };
+  return data.note ? normalizeNote(data.note) : null;
 }
 
-export function clearNotes(ownerKey: string | null) {
+export async function clearNotes(ownerKey: string | null) {
   if (!ownerKey) {
     return;
   }
 
-  saveNotes(ownerKey, []);
+  const response = await fetch("/api/notes", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerKey, clearAll: true }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to clear notes");
+  }
+
+  dispatchNotesUpdated();
 }
 
-export function removeNote(ownerKey: string | null, noteId: string) {
+export async function removeNote(ownerKey: string | null, noteId: string) {
   if (!ownerKey) {
     return;
   }
 
-  saveNotes(ownerKey, getNotes(ownerKey).filter((item) => item.id !== noteId));
+  const response = await fetch("/api/notes", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerKey, noteId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to remove note");
+  }
+
+  dispatchNotesUpdated();
 }
 
 // Listen for storage changes to sync notes across tabs 
