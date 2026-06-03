@@ -33,6 +33,7 @@ export default function Navbar() {
     { label: "Bookmark", href: "/bookmark" },
     { label: "upload", href: "/question/upload" },
     { label: "ALL Q", href: "/questions" },
+    { label: "About", href: "/questions/about" },
   ];
 
   const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -42,6 +43,7 @@ export default function Navbar() {
     Bookmark,
     upload: Upload,
     "ALL Q": FileText,
+    About: FileText,
   };
 
   const handleLogout = () => {
